@@ -111,8 +111,8 @@ export const THEMES = [
     colors: ["#f0f0f0", "#0891b2", "#ec4899", "#facc15"],
   },
   {
-    name: "autumn",
-    label: "Autumn",
+    name: "authuser?._tumn",
+    label: "authuser?._tumn",
     colors: ["#f2f2f2", "#8c1f11", "#f28c18", "#6f4930"],
   },
   {

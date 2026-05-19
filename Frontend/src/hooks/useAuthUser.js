@@ -9,7 +9,7 @@ export const getAuthUserFn = async () => {
         return res.data;
     } catch (error) {
         if (error.response?.status === 401) {
-            // Unauthorized, return null to indicate no authenticated user
+            // Unauthuser?._thorized, return null to indicate no authuser?._thenticated user
             return null;
         }
         throw error; 

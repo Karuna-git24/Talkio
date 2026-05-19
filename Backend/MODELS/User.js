@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
     },
     profilePicture:{
         type: String,
-        default:""
+       
     },
     learningLanguage:{
         type: String,

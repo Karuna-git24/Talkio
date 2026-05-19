@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
 import { getStreamToken } from "../lib/api";
 
 import {
   StreamVideo,
- 
   StreamCall,
   CallControls,
   SpeakerLayout,
@@ -14,8 +13,11 @@ import {
   CallingState,
   useCallStateHooks,
 } from "@stream-io/video-react-sdk";
+
 import { StreamVideoClient } from "@stream-io/video-client";
+
 import "@stream-io/video-react-sdk/dist/css/styles.css";
+
 import toast from "react-hot-toast";
 import PageLoader from "../component/PageLoader";
 
@@ -23,6 +25,7 @@ const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 const CallPage = () => {
   const { id: callId } = useParams();
+
   const [client, setClient] = useState(null);
   const [call, setCall] = useState(null);
   const [isConnecting, setIsConnecting] = useState(true);
@@ -36,82 +39,103 @@ const CallPage = () => {
   });
 
   useEffect(() => {
+    if (!tokenData?.token || !authUser || !callId) return;
+
+    let videoClient;
+    let callInstance;
+
     const initCall = async () => {
-      if (!tokenData?.token || !authUser || !callId) return;
-
       try {
-        console.log("Initializing Stream video client...");
+        setIsConnecting(true);
 
-        const user = {
-          id: authUser._id,
-          name: authUser.fullName,
-          image: authUser.profilePic,
-        };
-
-        const videoClient = new StreamVideoClient({
+        videoClient = new StreamVideoClient({
           apiKey: STREAM_API_KEY,
-          user,
+          user: {
+            id: authUser?._id,
+            name: authUser?.FullName,
+            image: authUser?.profilePicture || "",
+          },
           token: tokenData.token,
         });
 
-        const callInstance = videoClient.call("default", callId);
+        callInstance = videoClient.call("default", callId);
 
-        await callInstance.join({ create: true });
-
-        console.log("Joined call successfully");
+        await callInstance.join({
+          create: true,
+        });
 
         setClient(videoClient);
         setCall(callInstance);
+
+        console.log("Call joined successfully");
       } catch (error) {
-        console.error("Error joining call:", error);
-        toast.error("Could not join the call. Please try again.");
+        console.error(error);
+        toast.error("Failed to connect to call");
       } finally {
         setIsConnecting(false);
       }
     };
 
     initCall();
+
+    return () => {
+      const cleanup = async () => {
+        if (callInstance) {
+          await callInstance.leave();
+        }
+
+        if (videoClient) {
+          await videoClient.disconnectUser();
+        }
+      };
+
+      cleanup();
+    };
   }, [tokenData, authUser, callId]);
 
-  if (isLoading || isConnecting) return <PageLoader />;
+  if (isLoading || isConnecting) {
+    return <PageLoader />;
+  }
+
+  if (!client || !call) {
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        Failed to connect
+      </div>
+    );
+  }
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center">
-      <div className="relative w-full h-full">
-        {client && call ? (
-          <StreamVideo client={client}>
-            <StreamCall call={call}>
-              <CallContent />
-            </StreamCall>
-          </StreamVideo>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <p>Could not initialize call. Please refresh or try again later.</p>
-          </div>
-        )}
-      </div>
+    <div className="h-screen w-full">
+      <StreamVideo client={client}>
+        <StreamCall call={call}>
+          <CallContent />
+        </StreamCall>
+      </StreamVideo>
     </div>
   );
 };
 
 const CallContent = () => {
+  const navigate = useNavigate();
+
   const { useCallCallingState } = useCallStateHooks();
+
   const callingState = useCallCallingState();
 
-  const navigate = useNavigate();
-useEffect(() => {
+  useEffect(() => {
     if (callingState === CallingState.LEFT) {
-      toast("Call ended");
+      toast.success("Call ended");
       navigate("/");
     }
   }, [callingState, navigate]);
 
   return (
     <StreamTheme>
-      <div className="h-screen">
+      <div className="h-screen relative">
         <SpeakerLayout />
+        <CallControls />
       </div>
-      <CallControls />
     </StreamTheme>
   );
 };

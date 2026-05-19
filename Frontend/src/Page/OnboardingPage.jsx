@@ -132,7 +132,7 @@ const handleRandomAvatar = () => {
                 onChange={(e) => setFormState({...formState,nativeLanguage:e.target.value})}
                 className="select select-bordered w-full">
                   <option value="">Select your native language</option>
-                  {LANGUAGES.map((lang) =>(
+                  {LANGUAGES?.map((lang) =>(
                   <option key={`native-${lang}`} value={lang.toLowerCase()}>
                     {lang}
                   </option>
@@ -151,7 +151,7 @@ const handleRandomAvatar = () => {
           onChange={(e) => setFormState({...formState,learningLanguage:e.target.value})}
           className="select select-bordered w-full">
             <option value="">Select language you know</option>
-            {LANGUAGES.map((lang)=>(
+            {LANGUAGES?.map((lang)=>(
               <option key={`learning-${lang}`} value={lang.toLowerCase()}>{lang}
               </option>
             ))}

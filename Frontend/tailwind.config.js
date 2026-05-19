@@ -36,7 +36,7 @@ export default {
       "luxury",
       "dracula",
       "cmyk",
-      "autumn",
+      "authuser?._tumn",
       "business",
       "acid",
       "lemonade",

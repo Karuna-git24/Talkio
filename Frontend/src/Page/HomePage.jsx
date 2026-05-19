@@ -49,15 +49,19 @@ const HomePage = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["outgoingFriendReqs"] }),
   });
 
-  useEffect(() => {
-    const outgoingIds = new Set();
-    if (outgoingFriendReqs && outgoingFriendReqs.length > 0) {
-      outgoingFriendReqs.forEach((req) => {
+ useEffect(() => {
+  const outgoingIds = new Set();
+
+  if (Array.isArray(outgoingFriendReqs)) {
+    outgoingFriendReqs.forEach((req) => {
+      if (req?.recipient?._id) {
         outgoingIds.add(req.recipient._id);
-      });
-      setOutgoingRequestsIds(outgoingIds);
-    }
-  }, [outgoingFriendReqs]);
+      }
+    });
+  }
+
+  setOutgoingRequestsIds(outgoingIds);
+}, [outgoingFriendReqs]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -78,8 +82,8 @@ const HomePage = () => {
           <NoFriendsFound />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {friends.map((friend) => (
-              <FriendCard key={friend._id} friend={friend} />
+            {friends?.map((friend) => (
+              <FriendCard key={friend?._id} friend={friend} />
             ))}
           </div>
         )}
@@ -110,25 +114,29 @@ const HomePage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recommendedUsers.map((user) => {
-                const hasRequestBeenSent = outgoingRequestsIds.has(user._id);
+                const hasRequestBeenSent = outgoingRequestsIds.has(user?._id);
 
                 return (
                   <div
-                    key={user._id}
+                    key={user?._id}
                     className="card bg-base-200 hover:shadow-lg transition-all duration-300"
                   >
                     <div className="card-body p-5 space-y-4">
                       <div className="flex items-center gap-3">
                         <div className="avatar size-16 rounded-full">
-                          <img src={user.profilePicture} alt={user.FullName} />
+                          <img
+  src={user?.profilePicture || "/avatar.png"}
+  alt={user?.FullName || "User"}
+  className="rounded-full object-cover w-full h-full"
+/>
                         </div>
 
                         <div>
-                          <h3 className="font-semibold text-lg">{user.FullName}</h3>
-                          {user.location && (
+                          <h3 className="font-semibold text-lg">{user?.FullName}</h3>
+                          {user?.location && (
                             <div className="flex items-center text-xs opacity-70 mt-1">
                               <MapPinIcon className="size-3 mr-1" />
-                              {user.location}
+                              {user?.location}
                             </div>
                           )}
                         </div>
@@ -137,23 +145,23 @@ const HomePage = () => {
                       {/* Languages with flags */}
                       <div className="flex flex-wrap gap-1.5">
                         <span className="badge badge-secondary">
-                          {getLanguageFlag(user.nativeLanguage)}
-                          Native: {capitalize(user.nativeLanguage)}
+                          {getLanguageFlag(user?.nativeLanguage)}
+                          Native: {capitalize(user?.nativeLanguage)}
                         </span>
                         <span className="badge badge-outline">
-                          {getLanguageFlag(user.learningLanguage)}
-                          Learning: {capitalize(user.learningLanguage)}
+                          {getLanguageFlag(user?.learningLanguage)}
+                          Learning: {capitalize(user?.learningLanguage)}
                         </span>
                       </div>
 
-                      {user.bio && <p className="text-sm opacity-70">{user.bio}</p>}
+                      {user?.bio && <p className="text-sm opacity-70">{user?.bio}</p>}
 
                       {/* Action button */}
                       <button
                         className={`btn w-full mt-2 ${
                           hasRequestBeenSent ? "btn-disabled" : "btn-primary"
                         } `}
-                        onClick={() => sendRequestMutation(user._id)}
+                        onClick={() => sendRequestMutation(user?._id)}
                         disabled={hasRequestBeenSent || isPending}
                       >
                         {hasRequestBeenSent ? (

@@ -34,9 +34,8 @@ const App = () => {
       </div>
     );
   }
-
-  const isAuthenticated = !!authUser;
-  const isOnboarding = authUser?.isOnboarded;
+const isAuthenticated = !!authUser;
+const isOnboardingCompleted = authUser?.isOnboarded;
 
   return (
     <div className="h-screen" data-theme={theme}>
@@ -45,7 +44,7 @@ const App = () => {
         {/* PROTECTED ROUTES */}
         <Route
           element={
-            isAuthenticated && isOnboarding ? (
+            isAuthenticated && isOnboardingCompleted ? (
               <Layout showSidebar={true} />
             ) : (
               <Navigate
@@ -80,7 +79,7 @@ const App = () => {
               <SignupPage />
             ) : (
               <Navigate
-                to={isOnboarding ? "/" : "/onboarding"}
+                to={isOnboardingCompleted ? "/" : "/onboarding"}
               />
             )
           }
@@ -94,7 +93,7 @@ const App = () => {
               <LoginPage />
             ) : (
               <Navigate
-                to={isOnboarding ? "/" : "/onboarding"}
+                to={isOnboardingCompleted ? "/" : "/onboarding"}
               />
             )
           }
@@ -106,7 +105,7 @@ const App = () => {
           element={
             !isAuthenticated ? (
               <Navigate to="/login" />
-            ) : isOnboarding ? (
+            ) : isOnboardingCompleted ? (
               <Navigate to="/" />
             ) : (
               <OnboardingPage />

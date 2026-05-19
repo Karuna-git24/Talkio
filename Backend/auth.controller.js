@@ -2,7 +2,7 @@ import {upsertStreamUser} from "./lib/stream.js"
 import jwt from "jsonwebtoken"
 import User from "./MODELS/User.js";
 
-export const checkAuth = async (req, res) => {
+export const checkAuthUser = async (req, res) => {
   res.set("Cache-Control", "no-store");  // ✅ ADD THIS
   res.status(200).json({ user: req.user });
 };
@@ -36,11 +36,10 @@ export async function signup(req, res) {
       return res.status(400).json({ message: "Email already in use" });
     }
 
-    // ✅ Avatarconst randomAvatar =
-
-  const randomAvatar =`https://api.dicebear.com/7.x/adventurer/svg?seed=${
-    FullName || "User"
-  }${Math.random()}`
+    // ✅ Avatar
+    const randomAvatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${
+      FullName || "User"
+    }${Math.random()}`
 
     // ✅ Create user (NO save() again)
     const newUser = await User.create({
@@ -55,7 +54,7 @@ export async function signup(req, res) {
     // ✅ Stream (optional)
     try {
       await upsertStreamUser({
-        userId: newUser._id.toString(),
+        userId: newUser?._id.toString(),
         name: newUser.FullName,
         email: newUser.email,
         image: newUser.profilePicture || "",
@@ -68,7 +67,7 @@ export async function signup(req, res) {
 
     // ✅ Token
     const token = jwt.sign(
-      { userid: newUser._id },
+      { userid: newUser?._id },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
@@ -138,7 +137,7 @@ export async function login(req, res) {
 
     // ✅ Create token
     const token = jwt.sign(
-      { userid: user._id },
+      { userid: user?._id },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
@@ -168,12 +167,14 @@ export async function login(req, res) {
   }
 }
 export function logout(req, res) {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt",{
+    path:"/",
+  });
   res.status(200).json({ message: "Logged out successfully" });
 }
 export async function onboard(req, res) {
   try {
-    const userId = req.user._id;
+    const userId = req.user?._id;
 
     const {
       FullName,
@@ -220,7 +221,7 @@ export async function onboard(req, res) {
     // Stream user update
     try {
       await upsertStreamUser({
-        user_id: updatedUser._id.toString(),
+        userId: updatedUser?._id.toString(),
         name: updatedUser.FullName,
         image: updatedUser.profilePicture || "",
       });

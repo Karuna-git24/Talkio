@@ -2,7 +2,7 @@ import { axiosInstance } from "./axios";
 
 
 export const signup = async (data) => {
-  const res = await fetch("http://localhost:5001/api/auth/signup", {
+  const res = await fetch("http://localhost:5001/api/auth/me/signup", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

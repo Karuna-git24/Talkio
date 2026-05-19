@@ -1,14 +1,14 @@
 import { ShipWheelIcon,BellIcon,HomeIcon ,UserIcon} from 'lucide-react';
 import React from 'react'
 import { Link ,useLocation } from 'react-router-dom'
-import useAuthUser from '../hooks/useAuthUser';
+import useAuthUser from '../hooks/useAuthUser.js';
 import { createAvatar } from "@dicebear/core";
 import { adventurer} from "@dicebear/collection";
 
 
 
 const Sidebar = () => {
-  const { authUser } = useAuthUser()
+  const { authUser } = useAuthUser();
   const location = useLocation();
   const currentPath = location.pathname;
   return (
