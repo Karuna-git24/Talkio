@@ -1,21 +1,13 @@
 import { axiosInstance } from "./axios";
 
 
-export const signup = async (data) => {
-  const res = await fetch("https://talkio-3350.onrender.com/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-    body: JSON.stringify(data),
-  });
+export const signup = async (signupData) => {
+  const response = await axiosInstance.post(
+    "/auth/signup",
+    signupData
+  );
 
-  if (!res.ok) {
-    throw new Error("Signup failed");
-  }
-
-  return res.json();
+  return response.data;
 };
 
 

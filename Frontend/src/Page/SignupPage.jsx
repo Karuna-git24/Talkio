@@ -15,15 +15,17 @@ const SignUpPage = () => {
 
   // API CALL
   const signupUser = async (data) => {
-    const res = await fetch("https://talkio-3350.onrender.com/signup", {
+  const res = await fetch(
+    "https://talkio-3350.onrender.com/api/auth/signup",
+    {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
       body: JSON.stringify(data),
-    });
-
+    }
+  );
     const result = await res.json();
 
     if (!res.ok) {
