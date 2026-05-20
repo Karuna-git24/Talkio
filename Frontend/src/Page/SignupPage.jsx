@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ShipWheelIcon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-
+import { signup } from "../lib/api.js";
 const SignUpPage = () => {
   const [signupData, setSignupData] = useState({
     FullName: "",
