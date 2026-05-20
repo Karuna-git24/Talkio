@@ -65,9 +65,8 @@ const CallPage = () => {
 
         callInstance = videoClient.call("default", callId);
 
-        await callInstance.join({
-          create: true,
-        });
+       await callInstance.getOrCreate();
+await callInstance.join();
 
         if (!mounted) return;
 
@@ -85,31 +84,43 @@ const CallPage = () => {
       }
     };
 
-    initCall();
+ const initCall = async () => {
+  try {
+    setIsConnecting(true);
 
-    return () => {
-      mounted = false;
+    videoClient = new StreamVideoClient({
+      apiKey: STREAM_API_KEY,
+      user: {
+        id: authUser._id,
+        name: authUser.FullName || "User",
+        image: authUser.profilePicture || "",
+      },
+      token: tokenData.token,
+    });
 
-      const cleanup = async () => {
-        try {
-          if (callInstance) {
-            await callInstance.leave();
-          }
-        } catch (error) {
-          console.log("Call already left");
-        }
+    callInstance = videoClient.call("default", callId);
 
-        try {
-          if (videoClient) {
-            await videoClient.disconnectUser();
-          }
-        } catch (error) {
-          console.log("User already disconnected");
-        }
-      };
+    await callInstance.join({ create: true });
+
+    // Enable camera and mic for ALL participants
+    await callInstance.camera.enable();
+    await callInstance.microphone.enable();
+
+    if (!mounted) return;
+
+    setClient(videoClient);
+    setCall(callInstance);
+
+  } catch (error) {
+    console.error("CALL ERROR:", error);
+    toast.error("Failed to connect to call");
+  } finally {
+    if (mounted) setIsConnecting(false);
+  }
+};
 
       cleanup();
-    };
+    
   }, [tokenData, authUser?._id, callId]);
 
   if (isLoading || isConnecting) {
