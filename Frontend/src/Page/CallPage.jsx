@@ -19,7 +19,7 @@ import { StreamVideoClient } from "@stream-io/video-client";
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 
 import toast from "react-hot-toast";
-import PageLoader from "../component/PageLoader";
+import PageLoader from "../component/pageloader.jsx";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
