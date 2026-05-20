@@ -288,7 +288,6 @@
     "resolve": "^1.22.12",
     "resolve-from": "^4.0.0",
     "reusify": "^1.1.0",
-    
     "run-parallel": "^1.2.0",
     "rxjs": "^7.8.2",
     "safe-buffer": "^5.2.1",
@@ -362,7 +361,7 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
-    "@vitejs/plugin-react": "^6.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
     "vite": "^5.4.19"
   }
 }
