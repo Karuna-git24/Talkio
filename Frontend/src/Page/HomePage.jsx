@@ -64,7 +64,7 @@ const HomePage = () => {
 }, [outgoingFriendReqs]);
 
  return (
-  <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 bg-base-100 overflow-y-auto">
+  <div className="h-screen px-4 py-6 sm:px-6 lg:px-8 bg-base-100 overflow-y-auto">
     <div className="max-w-7xl mx-auto">
 
       {/* HEADER */}
