@@ -203,7 +203,7 @@ const HomePage = () => {
 
                     {/* BUTTON */}
                     <button
-                      className={`btn w-full rounded-xl mt-2 ${
+                      className={`btn btn-primary w-full rounded-xl mt-auto ${
                         hasRequestBeenSent
                           ? "btn-disabled"
                           : "btn-primary"
