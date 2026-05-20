@@ -35,14 +35,17 @@ const CallPage = () => {
   const { data: tokenData } = useQuery({
     queryKey: ["streamToken"],
     queryFn: getStreamToken,
-    enabled: !!authUser,
+    enabled: !!authUser?._id,
   });
 
   useEffect(() => {
-    if (!tokenData?.token || !authUser || !callId) return;
+    if (!tokenData?.token || !authUser?._id || !callId) {
+      return;
+    }
 
     let videoClient;
     let callInstance;
+    let mounted = true;
 
     const initCall = async () => {
       try {
@@ -50,11 +53,13 @@ const CallPage = () => {
 
         videoClient = new StreamVideoClient({
           apiKey: STREAM_API_KEY,
+
           user: {
-            id: authUser?._id,
-            name: authUser?.FullName,
-            image: authUser?.profilePicture || "",
+            id: authUser._id,
+            name: authUser.FullName || "User",
+            image: authUser.profilePicture || "",
           },
+
           token: tokenData.token,
         });
 
@@ -64,34 +69,48 @@ const CallPage = () => {
           create: true,
         });
 
+        if (!mounted) return;
+
         setClient(videoClient);
         setCall(callInstance);
 
-        console.log("Call joined successfully");
+        console.log("Joined call successfully");
       } catch (error) {
-        console.error(error);
+        console.error("CALL ERROR:", error);
         toast.error("Failed to connect to call");
       } finally {
-        setIsConnecting(false);
+        if (mounted) {
+          setIsConnecting(false);
+        }
       }
     };
 
     initCall();
 
     return () => {
+      mounted = false;
+
       const cleanup = async () => {
-        if (callInstance) {
-          await callInstance.leave();
+        try {
+          if (callInstance) {
+            await callInstance.leave();
+          }
+        } catch (error) {
+          console.log("Call already left");
         }
 
-        if (videoClient) {
-          await videoClient.disconnectUser();
+        try {
+          if (videoClient) {
+            await videoClient.disconnectUser();
+          }
+        } catch (error) {
+          console.log("User already disconnected");
         }
       };
 
       cleanup();
     };
-  }, [tokenData, authUser, callId]);
+  }, [tokenData, authUser?._id, callId]);
 
   if (isLoading || isConnecting) {
     return <PageLoader />;
@@ -99,14 +118,22 @@ const CallPage = () => {
 
   if (!client || !call) {
     return (
-      <div className="h-screen flex items-center justify-center text-white">
-        Failed to connect
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">
+            Failed to connect
+          </h2>
+
+          <p className="opacity-70">
+            Please refresh and try again
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-full">
+    <div className="h-screen w-full bg-black">
       <StreamVideo client={client}>
         <StreamCall call={call}>
           <CallContent />
@@ -132,9 +159,12 @@ const CallContent = () => {
 
   return (
     <StreamTheme>
-      <div className="h-screen relative">
+      <div className="h-screen relative bg-black">
         <SpeakerLayout />
-        <CallControls />
+
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
+          <CallControls />
+        </div>
       </div>
     </StreamTheme>
   );
