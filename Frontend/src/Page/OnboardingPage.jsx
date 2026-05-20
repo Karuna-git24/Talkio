@@ -69,7 +69,7 @@ const handleRandomAvatar = () => {
   <div className="flex flex-col items-center justify-center space-y-4">
 
     {/* IMAGE PREVEIW */}
-    <div className="size-32 rounded-full bg-base-300 overflow-hidden ">
+    <div className="size-32 rounded-full bg-base-300 overflow-y-auto ">
       {formState.profilePicture ? (
         <img 
         src={formState.profilePicture}
