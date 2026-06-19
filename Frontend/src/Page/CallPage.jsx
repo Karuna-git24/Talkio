@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
@@ -8,10 +9,10 @@ import {
   StreamVideo,
   StreamCall,
   CallControls,
-  SpeakerLayout,
   StreamTheme,
   CallingState,
   useCallStateHooks,
+  PaginatedGridLayout,
 } from "@stream-io/video-react-sdk";
 
 import { StreamVideoClient } from "@stream-io/video-client";
@@ -43,9 +44,10 @@ const CallPage = () => {
       return;
     }
 
+    let mounted = true;
+
     let videoClient;
     let callInstance;
-    let mounted = true;
 
     const initCall = async () => {
       try {
@@ -65,15 +67,20 @@ const CallPage = () => {
 
         callInstance = videoClient.call("default", callId);
 
-       await callInstance.getOrCreate();
-await callInstance.join();
+        await callInstance.getOrCreate();
+
+        await callInstance.join();
+
+        // ENABLE CAMERA + MIC
+        await callInstance.camera.enable();
+        await callInstance.microphone.enable();
 
         if (!mounted) return;
 
         setClient(videoClient);
         setCall(callInstance);
 
-        console.log("Joined call successfully");
+        console.log("Call connected");
       } catch (error) {
         console.error("CALL ERROR:", error);
         toast.error("Failed to connect to call");
@@ -84,43 +91,31 @@ await callInstance.join();
       }
     };
 
- const initCall = async () => {
-  try {
-    setIsConnecting(true);
+    initCall();
 
-    videoClient = new StreamVideoClient({
-      apiKey: STREAM_API_KEY,
-      user: {
-        id: authUser._id,
-        name: authUser.FullName || "User",
-        image: authUser.profilePicture || "",
-      },
-      token: tokenData.token,
-    });
+    return () => {
+      mounted = false;
 
-    callInstance = videoClient.call("default", callId);
+      const cleanup = async () => {
+        try {
+          if (callInstance) {
+            await callInstance.leave();
+          }
+        } catch (error) {
+          console.log("Call already left");
+        }
 
-    await callInstance.join({ create: true });
-
-    // Enable camera and mic for ALL participants
-    await callInstance.camera.enable();
-    await callInstance.microphone.enable();
-
-    if (!mounted) return;
-
-    setClient(videoClient);
-    setCall(callInstance);
-
-  } catch (error) {
-    console.error("CALL ERROR:", error);
-    toast.error("Failed to connect to call");
-  } finally {
-    if (mounted) setIsConnecting(false);
-  }
-};
+        try {
+          if (videoClient) {
+            await videoClient.disconnectUser();
+          }
+        } catch (error) {
+          console.log("User already disconnected");
+        }
+      };
 
       cleanup();
-    
+    };
   }, [tokenData, authUser?._id, callId]);
 
   if (isLoading || isConnecting) {
@@ -129,22 +124,14 @@ await callInstance.join();
 
   if (!client || !call) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">
-            Failed to connect
-          </h2>
-
-          <p className="opacity-70">
-            Please refresh and try again
-          </p>
-        </div>
+      <div className="h-screen flex items-center justify-center bg-black text-white">
+        Failed to connect
       </div>
     );
   }
 
   return (
-    <div className="h-screen w-full bg-black">
+    <div className="h-screen w-full bg-black overflow-hidden">
       <StreamVideo client={client}>
         <StreamCall call={call}>
           <CallContent />
@@ -171,9 +158,11 @@ const CallContent = () => {
   return (
     <StreamTheme>
       <div className="h-screen relative bg-black">
-        <SpeakerLayout />
+        {/* SHOW ALL PARTICIPANTS */}
+        <PaginatedGridLayout />
 
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
+        {/* CONTROLS */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-50">
           <CallControls />
         </div>
       </div>
@@ -182,3 +171,4 @@ const CallContent = () => {
 };
 
 export default CallPage;
+

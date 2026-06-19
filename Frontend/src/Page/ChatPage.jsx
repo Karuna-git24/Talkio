@@ -2,11 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import useAuthUser from "../hooks/useAuthUser";
-
 import { useQuery } from "@tanstack/react-query";
 
 import { getStreamToken } from "../lib/api";
-
 import { useThemeStore } from "../store/useThemeStore";
 
 import {
@@ -52,9 +50,13 @@ const ChatPage = () => {
   });
 
   useEffect(() => {
-    if (!tokenData?.token || !authUser || !targetUserId) return;
+    if (!tokenData?.token || !authUser?._id || !targetUserId) {
+      return;
+    }
 
-    let client;
+    let isMounted = true;
+
+    const client = StreamChat.getInstance(STREAM_API_KEY);
 
     const initChat = async () => {
       try {
@@ -62,12 +64,11 @@ const ChatPage = () => {
 
         console.log("Initializing Stream Chat...");
 
-        client = StreamChat.getInstance(STREAM_API_KEY);
-
+        // CONNECT USER
         await client.connectUser(
           {
             id: authUser._id,
-            name: authUser.FullName,
+            name: authUser.FullName || "User",
             image: authUser.profilePicture || "",
           },
           tokenData.token
@@ -78,6 +79,7 @@ const ChatPage = () => {
           .sort()
           .join("-");
 
+        // CREATE CHANNEL
         const currChannel = client.channel(
           "messaging",
           channelId,
@@ -86,19 +88,24 @@ const ChatPage = () => {
           }
         );
 
+        // WATCH CHANNEL
         await currChannel.watch();
+
+        if (!isMounted) return;
 
         setChatClient(client);
 
         setChannel(currChannel);
 
-        console.log("Chat connected");
+        console.log("Chat connected successfully");
       } catch (error) {
-        console.error(error);
+        console.error("CHAT ERROR:", error);
 
         toast.error("Failed to connect chat");
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
@@ -106,11 +113,11 @@ const ChatPage = () => {
 
     // CLEANUP
     return () => {
-      if (client) {
-        client.disconnectUser();
-      }
+      isMounted = false;
+
+      client.disconnectUser();
     };
-  }, [tokenData, authUser, targetUserId]);
+  }, [tokenData?.token, authUser?._id, targetUserId]);
 
   // VIDEO CALL
   const handleVideoCall = async () => {
@@ -119,12 +126,12 @@ const ChatPage = () => {
     try {
       const callId = crypto.randomUUID();
 
-      // SEND CALL LINK
+      // SEND CALL MESSAGE
       await channel.sendMessage({
         text: `/call/${callId}`,
       });
 
-      // NAVIGATE
+      // NAVIGATE TO CALL
       navigate(`/call/${callId}`);
     } catch (error) {
       console.error(error);
@@ -138,8 +145,7 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="h-[93vh]">
-
+    <div className="h-screen overflow-hidden">
       <Chat
         client={chatClient}
         theme={
@@ -158,31 +164,26 @@ const ChatPage = () => {
             : "str-chat__theme-light"
         }
       >
-
         <Channel channel={channel}>
-
-          <div className="w-full relative h-full">
-
+          <div className="relative h-full w-full">
+            
             {/* VIDEO CALL BUTTON */}
-            <CallButton
-              handleVideoCall={handleVideoCall}
-            />
+            <CallButton handleVideoCall={handleVideoCall} />
 
             <Window>
-
               <ChannelHeader />
 
-              <MessageList />
+              {/* SCROLLABLE MESSAGE AREA */}
+              <div className="flex-1 overflow-y-auto">
+                <MessageList />
+              </div>
 
               <MessageInput focus />
-
             </Window>
           </div>
 
           <Thread />
-
         </Channel>
-
       </Chat>
     </div>
   );
